@@ -1,4 +1,10 @@
 import argparse
+import os
+import sys
+
+# Ensure the ``src`` package is importable when running this file directly.
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from src.segmentation import run as run_segmentation
 
 if __name__ == "__main__":

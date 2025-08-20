@@ -1,4 +1,11 @@
 import argparse
+import os
+import sys
+
+# Allow running as a script from the project root by ensuring the parent
+# directory (which contains the ``src`` package) is on ``sys.path``.
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from src.preprocess import run as run_preprocess
 
 if __name__ == "__main__":
