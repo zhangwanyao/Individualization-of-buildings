@@ -23,16 +23,16 @@ data/sample.laz
 
 分类编码要求：
 ```
-0: others
-1: roof
-2: wall
-3: door_window
-4: awning
-5: ground
-6: vegetation
+0: awning
+1: door_window
+2: ground
+3: others
+4: roof
+5: vegetation
+6: wall
 ```
 
-其中 `roof=1`, `wall=2`, `door_window=3` 将用于单体化分割。
+其中 `roof=4`, `wall=6`, `door_window=1` 将用于单体化分割。
 
 ---
 

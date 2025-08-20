@@ -7,7 +7,7 @@ def _attach_facades(points, classes, instance_ids, search_radius: float = 3.0):
     将 wall/door_window 贴附到最近的 roof 实例（按XY投影的近邻）。
     若找不到邻近roof实例，则保持为0（未分配）。
     """
-    roof_mask = (classes == 1) & (instance_ids > 0)
+    roof_mask = (classes == 4) & (instance_ids > 0)
     if roof_mask.sum() == 0:
         print("[Post] 无可用屋面实例，跳过贴附。")
         return instance_ids
@@ -17,7 +17,7 @@ def _attach_facades(points, classes, instance_ids, search_radius: float = 3.0):
     roof_ids = instance_ids[roof_mask]
     tree = cKDTree(roof_xy)
 
-    target_mask = (classes == 2) | (classes == 3)  # wall 或 door_window
+    target_mask = (classes == 6) | (classes == 1)  # wall 或 door_window
     tgt_xy = points[target_mask][:, :2]
 
     if len(tgt_xy) == 0:

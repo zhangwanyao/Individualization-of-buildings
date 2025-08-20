@@ -113,7 +113,7 @@ def _rag_prune_and_merge(G: nx.Graph, ridge_thresh: float, merge_thresh: float) 
 def _labels_to_instances_for_roof(points, classes, labels, origin_xy, grid_size):
     """将 roof 点（XY落在网格）映射到对应的分水岭区域ID，作为初步实例ID；非roof先置-1。"""
     inst = np.full(len(points), -1, dtype=np.int64)
-    roof_mask = classes == 1
+    roof_mask = classes == 4
     H, W = labels.shape
     ix, iy = _grid_index(points[roof_mask, 0], points[roof_mask, 1], origin_xy, grid_size)
     # 限定到网格范围

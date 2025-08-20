@@ -77,9 +77,9 @@ def run(laz_path: str, grid_size: float = 0.5, min_region_points: int = 100):
     points, classes = read_laz_classification(laz_path)
 
     # 仅保留 roof + wall + door_window，用于后续贴附（roof 主导）
-    roof_mask = classes == 1
-    wall_mask = classes == 2
-    door_mask = classes == 3
+    roof_mask = classes == 4
+    wall_mask = classes == 6
+    door_mask = classes == 1
 
     roof_pts = points[roof_mask]
     if len(roof_pts) < 10:
