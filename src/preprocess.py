@@ -40,7 +40,19 @@ def _build_dsm(roof_pts: np.ndarray, grid_size: float):
     return filled, (x0, y0), (ny, nx)
 
 def _watershed_roof_regions(dsm: np.ndarray, min_region_points: int):
-    """对 -DSM 做分水岭（高处为脊，低处为谷），输出标签图与边界。"""
+    """对 -DSM 做分水岭（高处为脊，低处为谷）。
+
+    返回
+    -------
+    labels : np.ndarray
+        每个像素所属的分水岭区域标签。
+    ridge_strength : np.ndarray
+        归一化的梯度强度，表示屋脊（区域边界）可能性的0-1值。
+
+    Notes
+    -----
+    该函数返回 ``(labels, ridge_strength)``。
+    """
     # 取梯度作为参考
     grad = sobel(dsm)
 
