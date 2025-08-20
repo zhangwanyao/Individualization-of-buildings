@@ -5,7 +5,7 @@
 
 ---
 
-##  环境配置
+## 环境配置
 
 ```bash
 conda create -n building python=3.9 -y
@@ -14,7 +14,7 @@ pip install -r requirements.txt
 ```
 
 
-##  数据准备
+## 数据准备
 
 将 `.laz` 或 `.las` 文件放在 `data/` 文件夹，例如：
 ```
@@ -36,7 +36,7 @@ data/sample.laz
 
 ---
 
-##  运行流程
+## 运行流程
 
 ### 1) 预处理  
 生成 DSM、分水岭初分割、屋脊强度：
@@ -71,7 +71,7 @@ python -m src.visualize output/instances_scalar_field.las
 
 ---
 
-##  输出文件
+## 输出文件
 
 - `output/instances_scalar_field.las`  
   带有 `InstanceID` 字段的点云（UInt32 类型）
