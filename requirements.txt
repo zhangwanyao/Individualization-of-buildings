@@ -1,0 +1,7 @@
+laspy>=2.5
+numpy>=1.23
+open3d>=0.17
+scipy>=1.10
+scikit-image>=0.22
+matplotlib>=3.7
+networkx>=3.2
