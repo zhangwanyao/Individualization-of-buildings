@@ -41,24 +41,74 @@ def _region_adjacency_and_edge_strength(labels: np.ndarray, ridge: np.ndarray) -
 
     return G, boundary_samples
 
-def _rag_prune_and_merge(G: nx.Graph, ridge_thresh: float, merge_thresh: float):
+def _rag_prune_and_merge(G: nx.Graph, ridge_thresh: float, merge_thresh: float) -> Tuple[nx.Graph, Dict[int, set]]:
+    """Prune strong edges and merge extremely weak ones.
+
+    Parameters
+    ----------
+    G : nx.Graph
+        Region adjacency graph whose edges carry a ``weight`` attribute.
+    ridge_thresh : float
+        Edges with ``weight`` >= ``ridge_thresh`` are considered strong
+        boundaries and will be removed.
+    merge_thresh : float
+        Edges with ``weight`` <= ``merge_thresh`` are treated as very weak
+        boundaries and their incident nodes are merged into the same
+        connected component via union–find.
+
+    Returns
+    -------
+    merged_graph : nx.Graph
+        Graph after contracting merged nodes and removing strong edges.
+    groups : Dict[int, set]
+        Mapping from representative node -> original region ids contained in
+        that representative.
     """
-    基于阈值裁剪/合并：
-    - 强边（>= ridge_thresh） → 保留为分割边（不相连）
-    - 弱边（<= merge_thresh） → 认为同一建筑，合并
-    - 介于两者之间的边 → 保留连接（后续连通分量自然归并）
-    合并通过“删除强边”+“记录弱边的合并意图”来实现。
-    """
-    # 删除强边（切断图）
+    # ---- union-find for weak edges ----
+    parent: Dict[int, int] = {n: n for n in G.nodes}
+
+    def find(x: int) -> int:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a: int, b: int):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    # pass1: mark strong edges and merge extremely weak edges
     to_remove = []
-    for u, v, d in G.edges(data=True):
-        if d.get("weight", 0.0) >= ridge_thresh:
+    for u, v, data in G.edges(data=True):
+        w = data.get("weight", 0.0)
+        if w >= ridge_thresh:
             to_remove.append((u, v))
+        elif w <= merge_thresh:
+            union(u, v)
+
+    # remove strong edges
     G.remove_edges_from(to_remove)
 
-    # 对极弱边，标记为“强制合并”（这里用连通性自然实现，无需额外并查集）
-    # 实际上删除强边后，弱边只要存在就维持连通，已达成“合并”效果。
-    # 若想更严格，可在弱边上降低权重，但这里不再多做处理。
+    # ---- rebuild graph using representatives ----
+    groups: Dict[int, set] = defaultdict(set)
+    merged = nx.Graph()
+    for n in G.nodes:
+        r = find(n)
+        groups[r].add(n)
+        merged.add_node(r)
+
+    for u, v, data in G.edges(data=True):
+        ru, rv = find(u), find(v)
+        if ru == rv:
+            continue
+        w = data.get("weight", 0.0)
+        if merged.has_edge(ru, rv):
+            merged.edges[ru, rv]["weight"] = min(merged.edges[ru, rv]["weight"], w)
+        else:
+            merged.add_edge(ru, rv, weight=w)
+
+    return merged, groups
 
 def _labels_to_instances_for_roof(points, classes, labels, origin_xy, grid_size):
     """将 roof 点（XY落在网格）映射到对应的分水岭区域ID，作为初步实例ID；非roof先置-1。"""
@@ -98,15 +148,18 @@ def run(preprocessed_file: str, ridge_thresh: float = 0.25, merge_thresh: float 
     print(f"[Seg] 初始区域数: {ws_labels.max()} | 图节点: {G.number_of_nodes()} 边数: {G.number_of_edges()}")
 
     # 基于屋脊强度的裁剪/合并
-    _rag_prune_and_merge(G, ridge_thresh=ridge_thresh, merge_thresh=merge_thresh)
+    G, merged_groups = _rag_prune_and_merge(
+        G, ridge_thresh=ridge_thresh, merge_thresh=merge_thresh
+    )
 
     # 取图的连通分量作为“合并后区域标签”
     comps = list(nx.connected_components(G))
     region_remap = {}
     new_id = 1
     for comp in comps:
-        for rid in comp:
-            region_remap[rid] = new_id
+        for root in comp:
+            for rid in merged_groups[root]:
+                region_remap[rid] = new_id
         new_id += 1
 
     # 注意：ws_labels中可能有一些区域没有进入图（独立小岛），为它们保留原ID或继续递增
