@@ -3,16 +3,24 @@ import numpy as np
 import os
 from typing import Tuple
 
-# 与你给的分类编码保持一致
-CLASS_NAMES = ["others", "roof", "wall", "door_window", "awning", "ground", "vegetation"]
+# 分类编码：0: awning, 1: door_window, 2: ground, 3: others, 4: roof, 5: vegetation, 6: wall
+CLASS_NAMES = [
+    "awning",
+    "door_window",
+    "ground",
+    "others",
+    "roof",
+    "vegetation",
+    "wall",
+]
 CLASS_COLORS = np.array([
-    [0.5, 0.5, 0.5],
-    [0.8, 0.2, 0.2],
-    [0.2, 0.8, 0.2],
-    [0.2, 0.2, 0.8],
-    [0.8, 0.8, 0.2],
-    [0.6, 0.3, 0.1],
-    [0.2, 0.8, 0.8],
+    [0.8, 0.8, 0.2],  # awning
+    [0.2, 0.2, 0.8],  # door_window
+    [0.6, 0.3, 0.1],  # ground
+    [0.5, 0.5, 0.5],  # others
+    [0.8, 0.2, 0.2],  # roof
+    [0.2, 0.8, 0.8],  # vegetation
+    [0.2, 0.8, 0.2],  # wall
 ], dtype=np.float64)
 
 def read_laz_classification(file_path: str) -> Tuple[np.ndarray, np.ndarray]:
